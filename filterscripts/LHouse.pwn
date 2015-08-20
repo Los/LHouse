@@ -82,7 +82,10 @@
 #define         DIALOG_STORAGE_ARMOUR           1376
 
 //======================== [CORES] ==============================//
-#define         COLOR_ERROR                     0xFF0000AA
+#define         COLOR_WARNING					0xf14545ff
+#define         COLOR_ERROR						0xf14545ff
+#define         COLOR_SUCCESS					0x88aa62ff
+#define         COLOR_INFO						0xA9C4E4ff
 
 //======================== [DEFINES] ===========================//
 #define         TEXT_SELLING_HOUSE              "- {5CFFC8} CASA A VENDA {FFFFFF} -\n{FFFF5C}Preço: {F6F6F6}$%d\n{FFFF5C}Número: {F6F6F6}%d"
@@ -207,28 +210,8 @@ new
     globalColor2,
     Float: oldArmour;
 
-new
-    PlayerText:houseLocked[MAX_PLAYERS],
-    PlayerText:houseUnlocked[MAX_PLAYERS],
-    PlayerText:vehicleLocked[MAX_PLAYERS],
-    PlayerText:vehicleUnlocked[MAX_PLAYERS],
-    PlayerText:rentDisabled[MAX_PLAYERS],
-    PlayerText:rentEnabled[MAX_PLAYERS],
-    PlayerText:vehicleSold[MAX_PLAYERS],
-    PlayerText:houseSold[MAX_PLAYERS],
-    PlayerText:houseEdited[MAX_PLAYERS],
-    PlayerText:welcome[MAX_PLAYERS],
-    PlayerText:comeBackSoon[MAX_PLAYERS],
-    PlayerText:houseCreated[MAX_PLAYERS],
-    PlayerText:noAutorization[MAX_PLAYERS],
-    PlayerText:vehicleCreated[MAX_PLAYERS],
-    PlayerText:houseDeleted[MAX_PLAYERS],
-    PlayerText:vehicleBought[MAX_PLAYERS],
-    PlayerText:vehicleModified[MAX_PLAYERS];
-
 //============================= [FORWARDS] ============================//
 TowVehicles();
-HideTextdraws(playerid);
 CreateHouseVehicleToPark(playerid);
 RentalCharge();
 CreateLogs();
@@ -328,7 +311,7 @@ public SpawnInHome(playerid)
 
                 GetPlayerPos(playerid, X, Y, Z);
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não tem dinheiro o suficiente para pagar o aluguel e foi despejado.");
+                SendClientMessage(playerid, COLOR_ERROR, "* Você não tem dinheiro o suficiente para pagar o aluguel e foi despejado.");
 
     			format(houseData[tenantHouseID][houseTenant], 255, "Ninguem");
     			DOF2_SetString(houseFile2, "Locador", "Ninguem", "Aluguel");
@@ -372,9 +355,9 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
         if(houseCarSet[playerid])
         {
             counting[playerid] = true;
-            SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Você saiu do veículo que você comprou para sua casa e estava definindo.");
-            SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Você tem {FF0000}50 {FFFFFF}segundos para voltar para o veículo, caso contrário ele vai ser destruído.");
-            SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Se o tempo for esgotado você não vai ter seu dinheiro de volta.");
+            SendClientMessage(playerid, COLOR_WARNING, "* Você saiu do veículo que você comprou para sua casa e estava definindo.");
+            SendClientMessage(playerid, COLOR_WARNING, "* Você tem {FF0000}50 {FFFFFF}segundos para voltar para o veículo, caso contrário ele vai ser destruído.");
+            SendClientMessage(playerid, COLOR_WARNING, "* Se o tempo for esgotado você não vai ter seu dinheiro de volta.");
             timerC[playerid] = SetTimerEx("DestroySetVehicle", 50000, false, "i", playerid);
         }
         return 1;
@@ -385,7 +368,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
         {
             if(counting[playerid])
             {
-                SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Você entrou no veículo a tempo e pode continuar definindo normalmente.");
+                SendClientMessage(playerid, COLOR_INFO, "* Você entrou no veículo a tempo e pode continuar definindo normalmente.");
                 KillTimer(timerC[playerid]);
             }
         }
@@ -425,9 +408,6 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
                     SetPlayerVirtualWorld(playerid, 0);
                     SetPlayerInterior(playerid, 0);
 
-                    PlayerTextDrawShow(playerid, comeBackSoon[playerid]);
-                    SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
-
                     new
                         logString[400];
 
@@ -465,9 +445,8 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
         					DOF2_SetInt(housePath, "Status do Carro", 0, "Veículo");
         					DOF2_SaveFile();
 
-        					PlayerTextDrawShow(playerid, vehicleUnlocked[playerid]);
+        					SendClientMessage(playerid, COLOR_INFO, "* Você destrancou seu veículo.");
 
-        					SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
         					SetVehicleParamsEx(houseVehicle[house][vehicleHouse], engine, lights, alarm, 0, bonnet, boot, objective);
 
                             new
@@ -496,9 +475,9 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
         					DOF2_SetInt(housePath, "Status do Carro", 1, "Veículo");
         					DOF2_SaveFile();
 
-        					PlayerTextDrawShow(playerid, vehicleLocked[playerid]);
+        					SendClientMessage(playerid, COLOR_INFO, "* Você trancou seu veículo");
 
-        					SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+
         					SetVehicleParamsEx(houseVehicle[house][vehicleHouse], engine, lights, alarm, 1, bonnet, boot, objective);
 
                             new
@@ -574,164 +553,6 @@ public OnFilterScriptExit()
     return 1;
 }
 
-public OnPlayerConnect(playerid)
-{
-    houseLocked[playerid] = CreatePlayerTextDraw(playerid, 445.000000, 306.000000, "Casa Trancada!");
-    PlayerTextDrawBackgroundColor(playerid, houseLocked[playerid], 255);
-    PlayerTextDrawFont(playerid,  houseLocked[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, houseLocked[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, houseLocked[playerid], -16776961);
-    PlayerTextDrawSetOutline(playerid, houseLocked[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, houseLocked[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, houseLocked[playerid], 1);
-
-    houseUnlocked[playerid] = CreatePlayerTextDraw(playerid, 404.000000, 306.000000, "Casa Destrancada!");
-    PlayerTextDrawBackgroundColor(playerid, houseUnlocked[playerid], 255);
-    PlayerTextDrawFont(playerid, houseUnlocked[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, houseUnlocked[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, houseUnlocked[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, houseUnlocked[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, houseUnlocked[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, houseUnlocked[playerid], 1);
-
-    vehicleLocked[playerid] = CreatePlayerTextDraw(playerid, 430.000000, 306.000000, "Carro Trancado!");
-    PlayerTextDrawBackgroundColor(playerid, vehicleLocked[playerid], 255);
-    PlayerTextDrawFont(playerid, vehicleLocked[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, vehicleLocked[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, vehicleLocked[playerid], -16776961);
-    PlayerTextDrawSetOutline(playerid, vehicleLocked[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, vehicleLocked[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, vehicleLocked[playerid], 1);
-
-    vehicleUnlocked[playerid] = CreatePlayerTextDraw(playerid, 389.000000, 306.000000, "Carro Destrancado!");
-    PlayerTextDrawBackgroundColor(playerid, vehicleUnlocked[playerid], 255);
-    PlayerTextDrawFont(playerid, vehicleUnlocked[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, vehicleUnlocked[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, vehicleUnlocked[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, vehicleUnlocked[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, vehicleUnlocked[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, vehicleUnlocked[playerid], 1);
-
-    rentDisabled[playerid] = CreatePlayerTextDraw(playerid, 384.000000, 306.000000, "Aluguel Desativado!");
-    PlayerTextDrawBackgroundColor(playerid, rentDisabled[playerid], 255);
-    PlayerTextDrawFont(playerid, rentDisabled[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, rentDisabled[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, rentDisabled[playerid], -16776961);
-    PlayerTextDrawSetOutline(playerid, rentDisabled[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, rentDisabled[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, rentDisabled[playerid], 1);
-
-    rentEnabled[playerid] = CreatePlayerTextDraw(playerid, 426.000000, 306.000000, "Aluguel Ativado!");
-    PlayerTextDrawBackgroundColor(playerid, rentEnabled[playerid], 255);
-    PlayerTextDrawFont(playerid, rentEnabled[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, rentEnabled[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, rentEnabled[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, rentEnabled[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, rentEnabled[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, rentEnabled[playerid], 1);
-
-    vehicleSold[playerid] = CreatePlayerTextDraw(playerid, 441.000000, 306.000000, "Carro Vendido!");
-    PlayerTextDrawBackgroundColor(playerid, vehicleSold[playerid], 255);
-    PlayerTextDrawFont(playerid, vehicleSold[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, vehicleSold[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, vehicleSold[playerid], -16776961);
-    PlayerTextDrawSetOutline(playerid, vehicleSold[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, vehicleSold[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, vehicleSold[playerid], 1);
-
-    houseSold[playerid] = CreatePlayerTextDraw(playerid, 456.000000, 306.000000, "Casa Vendida!");
-    PlayerTextDrawBackgroundColor(playerid, houseSold[playerid], 255);
-    PlayerTextDrawFont(playerid, houseSold[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, houseSold[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, houseSold[playerid], -16776961);
-    PlayerTextDrawSetOutline(playerid, houseSold[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, houseSold[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, houseSold[playerid], 1);
-
-    houseEdited[playerid] = CreatePlayerTextDraw(playerid, 465.000000, 306.000000, "Casa Editada!");
-    PlayerTextDrawBackgroundColor(playerid, houseEdited[playerid], 255);
-    PlayerTextDrawFont(playerid, houseEdited[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, houseEdited[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, houseEdited[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, houseEdited[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, houseEdited[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, houseEdited[playerid], 1);
-
-    welcome[playerid] = CreatePlayerTextDraw(playerid, 489.000000, 306.000000, "Bem Vindo!");
-    PlayerTextDrawBackgroundColor(playerid, welcome[playerid], 255);
-    PlayerTextDrawFont(playerid, welcome[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, welcome[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, welcome[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, welcome[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, welcome[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, welcome[playerid], 1);
-
-    comeBackSoon[playerid] = CreatePlayerTextDraw(playerid, 452.000000, 306.000000, "Volte Sempre!");
-    PlayerTextDrawBackgroundColor(playerid, comeBackSoon[playerid], 255);
-    PlayerTextDrawFont(playerid, comeBackSoon[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, comeBackSoon[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, comeBackSoon[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, comeBackSoon[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, comeBackSoon[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, comeBackSoon[playerid], 1);
-
-    houseCreated[playerid] = CreatePlayerTextDraw(playerid, 478.000000, 306.000000, "Casa Criada!");
-    PlayerTextDrawBackgroundColor(playerid, houseCreated[playerid], 255);
-    PlayerTextDrawFont(playerid, houseCreated[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, houseCreated[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, houseCreated[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, houseCreated[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, houseCreated[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, houseCreated[playerid], 1);
-
-    noAutorization[playerid] = CreatePlayerTextDraw(playerid, 412.000000, 306.000000, "Sem Autorizacao!");
-    PlayerTextDrawBackgroundColor(playerid, noAutorization[playerid], 255);
-    PlayerTextDrawFont(playerid, noAutorization[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, noAutorization[playerid], 0.789999, 3.599998);
-    PlayerTextDrawColor(playerid, noAutorization[playerid], -16776961);
-    PlayerTextDrawSetOutline(playerid, noAutorization[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, noAutorization[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, noAutorization[playerid], 1);
-
-    vehicleCreated[playerid] = CreatePlayerTextDraw(playerid, 463.000000, 306.000000, "Carro Criado!");
-    PlayerTextDrawBackgroundColor(playerid, vehicleCreated[playerid], 255);
-    PlayerTextDrawFont(playerid, vehicleCreated[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, vehicleCreated[playerid], 0.789999, 3.599997);
-    PlayerTextDrawColor(playerid, vehicleCreated[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, vehicleCreated[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, vehicleCreated[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, vehicleCreated[playerid], 1);
-
-    houseDeleted[playerid] = CreatePlayerTextDraw(playerid, 446.000000, 306.000000, "Casa Deletada!");
-    PlayerTextDrawBackgroundColor(playerid, houseDeleted[playerid], 255);
-    PlayerTextDrawFont(playerid, houseDeleted[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, houseDeleted[playerid], 0.789999, 3.599997);
-    PlayerTextDrawColor(playerid, houseDeleted[playerid], -16776961);
-    PlayerTextDrawSetOutline(playerid, houseDeleted[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, houseDeleted[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, houseDeleted[playerid], 1);
-
-    vehicleBought[playerid] = CreatePlayerTextDraw(playerid, 415.000000, 306.000000, "Carro Comprado!");
-    PlayerTextDrawBackgroundColor(playerid, vehicleBought[playerid], 255);
-    PlayerTextDrawFont(playerid, vehicleBought[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, vehicleBought[playerid], 0.789999, 3.599997);
-    PlayerTextDrawColor(playerid, vehicleBought[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, vehicleBought[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, vehicleBought[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, vehicleBought[playerid], 1);
-
-    vehicleModified[playerid] = CreatePlayerTextDraw(playerid, 407.000000, 306.000000, "Carro Modificado!");
-    PlayerTextDrawBackgroundColor(playerid, vehicleModified[playerid], 255);
-    PlayerTextDrawFont(playerid, vehicleModified[playerid], 1);
-    PlayerTextDrawLetterSize(playerid, vehicleModified[playerid], 0.789999, 3.599997);
-    PlayerTextDrawColor(playerid, vehicleModified[playerid], 16711935);
-    PlayerTextDrawSetOutline(playerid, vehicleModified[playerid], 0);
-    PlayerTextDrawSetProportional(playerid, vehicleModified[playerid], 1);
-    PlayerTextDrawSetShadow(playerid, vehicleModified[playerid], 1);
-
-    return 1;
-}
-
 public TowVehicles()
 {
     new
@@ -744,43 +565,21 @@ public TowVehicles()
             houseTows++;
             SetVehicleToRespawn(houseVehicle[houses][vehicleHouse]);
             towRequired[houses] = 0;
-            format(string, sizeof string, "O guincho acabou de entregar os carros solicitados!");
+            format(string, sizeof string, "* O guincho acabou de entregar os carros solicitados!");
         }
     }
 
     if(houseTows == 0)
         return 1;
 
-    SendClientMessageToAll(-1, string);
-    return 1;
-}
-
-public HideTextdraws(playerid)
-{
-    PlayerTextDrawHide(playerid, houseLocked[playerid]);
-    PlayerTextDrawHide(playerid, houseUnlocked[playerid]);
-    PlayerTextDrawHide(playerid, vehicleLocked[playerid]);
-    PlayerTextDrawHide(playerid, vehicleUnlocked[playerid]);
-    PlayerTextDrawHide(playerid, rentDisabled[playerid]);
-    PlayerTextDrawHide(playerid, rentEnabled[playerid]);
-    PlayerTextDrawHide(playerid, vehicleSold[playerid]);
-    PlayerTextDrawHide(playerid, houseSold[playerid]);
-    PlayerTextDrawHide(playerid, houseEdited[playerid]);
-    PlayerTextDrawHide(playerid, welcome[playerid]);
-    PlayerTextDrawHide(playerid, comeBackSoon[playerid]);
-    PlayerTextDrawHide(playerid, houseCreated[playerid]);
-    PlayerTextDrawHide(playerid, noAutorization[playerid]);
-    PlayerTextDrawHide(playerid, vehicleCreated[playerid]);
-    PlayerTextDrawHide(playerid, houseDeleted[playerid]);
-    PlayerTextDrawHide(playerid, vehicleBought[playerid]);
-    PlayerTextDrawHide(playerid, vehicleModified[playerid]);
+    SendClientMessageToAll(COLOR_INFO, string);
     return 1;
 }
 
 public DestroySetVehicle(playerid)
 {
-    SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Você não voltou para o veículo a tempo.");
-    SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] O veículo foi destruído.");
+    SendClientMessage(playerid, COLOR_ERROR, "* Você não voltou para o veículo a tempo.");
+    SendClientMessage(playerid, COLOR_ERROR, "* O veículo foi destruído.");
     new house = GetHouseByOwner(playerid);
     DestroyVehicle(vehicleHouseCarDefined[house]);
     houseCarSet[playerid] = false;
@@ -822,7 +621,7 @@ public CreateHouseVehicleToPark(playerid)
         Float: X, Float: Y, Float: Z,
         Float: facingAngle;
 
-    SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Agora estacione e digite {46FE00}/estacionar{FFFFFF}.");
+    SendClientMessage(playerid, COLOR_INFO, "* Agora estacione e digite {46FE00}/estacionar{FFFFFF}.");
 
     GetPlayerPos(playerid, X, Y, Z);
     GetPlayerFacingAngle(playerid, facingAngle);
@@ -831,8 +630,8 @@ public CreateHouseVehicleToPark(playerid)
     carSetted[playerid] = CreateVehicle(542, X, Y, Z, facingAngle, 0, 0, 90000);
 
     PutPlayerInVehicle(playerid, carSetted[playerid], 0);
-    PlayerTextDrawShow(playerid, vehicleCreated[playerid]);
-    SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+    SendClientMessage(playerid, COLOR_INFO, "* Veículo criado.");
+
 
     return 1;
 }
@@ -899,7 +698,7 @@ public RentalCharge()
 
                         if(IsPlayerConnected(ownerID))
                         {
-                            format(string, sizeof string, "[{FFEC00}LHouse{FFFFFF}] Hora de receber o aluguel! Você recebeu {FFFFFF}$%d {FFFFFF}do locador.", houseData[i][houseIncoming]);
+                            format(string, sizeof string, "* Hora de receber o aluguel! Você recebeu {FFFFFF}$%d {FFFFFF}do locador.", houseData[i][houseIncoming]);
                             SendClientMessage(ownerID, -1, string);
                             GivePlayerMoney(ownerID, houseData[i][houseIncoming]);
                             houseData[i][houseIncoming] = 0;
@@ -913,7 +712,7 @@ public RentalCharge()
                                 playersDumped++;
                                 GetPlayerPos(tenantID, X, Y, Z);
                                 PlayerPlaySound(tenantID, 1085, X, Y, Z);
-                                SendClientMessage(tenantID, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não tem dinheiro o suficiente para pagar o aluguel. Você foi despejado.");
+                                SendClientMessage(tenantID, COLOR_ERROR, "* Você não tem dinheiro o suficiente para pagar o aluguel. Você foi despejado.");
                     			format(houseData[i][houseTenant], 255, "Ninguem");
                     			DOF2_SetString(houseFile, "Locador", "Ninguem", "Aluguel");
                                 DOF2_RemoveFile(tenantFile);
@@ -921,8 +720,8 @@ public RentalCharge()
                                 return 1;
                             }
 
-                            format(string, sizeof string, "[{FFEC00}LHouse{FFFFFF}] Hora de pagar o aluguel! Você pagou {FFFFFF}$%d {FFFFFF}de aluguel.", houseData[i][houseOutcoming]);
-                            SendClientMessage(tenantID, -1, string);
+                            format(string, sizeof string, "* Hora de pagar o aluguel! Você pagou {FFFFFF}$%d {FFFFFF}de aluguel.", houseData[i][houseOutcoming]);
+                            SendClientMessage(tenantID, COLOR_INFO, string);
                             GivePlayerMoney(tenantID, -houseData[i][houseOutcoming]);
                             houseData[i][houseOutcoming] = 0;
                             DOF2_SetInt(tenantFile, "ValorApagar", houseData[i][houseOutcoming]);
@@ -977,14 +776,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if(houseData[house][houseStatus] == 1)
             {
-                PlayerTextDrawShow(playerid, houseLocked[playerid]);
-                SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                SendClientMessage(playerid, COLOR_ERROR, "* Esta casa está trancada.");
                 TogglePlayerControllable(playerid, 1);
 
                 new
                     logString[700];
 
-                format(logString, sizeof logString, "O jogador %s[%d], tentou entrar na casa %d, mais ela estava trancada.", playerName, playerid, house);
+                format(logString, sizeof logString, "O jogador %s[%d], tentou entrar na casa %d, mas ela estava trancada.", playerName, playerid, house);
                 WriteLog(LOG_HOUSES, logString);
 
                 return 1;
@@ -999,14 +797,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                     SetPlayerInterior(playerid, houseData[house][houseInterior]);
 
                     TogglePlayerControllable(playerid, 1);
-                    PlayerTextDrawShow(playerid, welcome[playerid]);
+                    SendClientMessage(playerid, COLOR_INFO, "* Bem vindo!");
 
                     new
                         logString[700];
 
                     format(logString, sizeof logString, "O jogador %s[%d], entrou na casa %d como visitante.", playerName, playerid, house);
                     WriteLog(LOG_HOUSES, logString);
-                    SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
                 }
             }
         }
@@ -1024,14 +821,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 {
                     if(houseData[house][houseStatus] == 1)
                     {
-                        PlayerTextDrawShow(playerid, houseLocked[playerid]);
-                        SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                        SendClientMessage(playerid, COLOR_ERROR, "* Esta casa está trancada!");
                         TogglePlayerControllable(playerid, 1);
 
                         new
                             logString[256];
 
-                        format(logString, sizeof logString, "O jogador %s[%d], tentou entrar na casa %d, mais ela estava trancada.", playerName, playerid, house);
+                        format(logString, sizeof logString, "O jogador %s[%d], tentou entrar na casa %d, mas ela estava trancada.", playerName, playerid, house);
                         WriteLog(LOG_HOUSES, logString);
                         return 1;
                     }
@@ -1045,8 +841,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                             SetPlayerInterior(playerid, houseData[house][houseInterior]);
 
                             TogglePlayerControllable(playerid, 1);
-                            PlayerTextDrawShow(playerid, welcome[playerid]);
-                            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                            SendClientMessage(playerid, COLOR_INFO, "* Bem vindo!");
 
                             new
                                 logString[128];
@@ -1072,7 +867,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
 
-                        format(string, sizeof string, "{F90700}Erro: {FFFFFF}Você já é dono da casa %d! Não pode alugar uma casa.!", alreadyOwner);
+                        format(string, sizeof string, "* Você já é dono da casa %d! Não pode alugar uma casa.!", alreadyOwner);
                         SendClientMessage(playerid, COLOR_ERROR, string);
 
                         TogglePlayerControllable(playerid, 1);
@@ -1114,7 +909,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         case DIALOG_UNRENT_CONFIRM:
         {
             if (!response)
-                return SendClientMessage(playerid, -1, "Você optou por não desalugar a casa.");
+                return SendClientMessage(playerid, COLOR_ERROR, "* Cancelado.");
             new
                 tenantFile[200],
                 houseFile[200],
@@ -1161,7 +956,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 GetPlayerPos(playerid, X, Y, Z);
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
 
-                format(string, sizeof string, "{F90700}Erro: {FFFFFF}Você já é locador da casa %d! Você só pode ter 1 casa alugada!", alreadyTenant);
+                format(string, sizeof string, "* Você já é locador da casa %d! Você só pode ter 1 casa alugada!", alreadyTenant);
                 SendClientMessage(playerid, COLOR_ERROR, string);
 
                 TogglePlayerControllable(playerid, 1);
@@ -1208,7 +1003,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         SetPlayerInterior(playerid, houseData[house][houseInterior]);
 
                         TogglePlayerControllable(playerid, 1);
-                        PlayerTextDrawShow(playerid, welcome[playerid]);
+                        SendClientMessage(playerid, COLOR_INFO, "* Bem vindo!");
 
                         new
                             logString[128];
@@ -1217,7 +1012,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         WriteLog(LOG_HOUSES, logString);
                         WriteLog(LOG_ADMIN, logString);
 
-                        SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+
                     }
                 }
                 case 1:
@@ -1227,7 +1022,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
 
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Não é possível alterar o preço de uma casa que não está a venda.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Não é possível alterar o preço de uma casa que não está a venda.");
 
                         new
                             logString[128];
@@ -1249,7 +1044,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
 
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Não é possível alterar o preço do aluguel de uma casa que não está sendo alugada.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Não é possível alterar o preço do aluguel de uma casa que não está sendo alugada.");
 
                         new
                             logString[700];
@@ -1316,7 +1111,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
 
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Essa casa já tem carro.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Essa casa já tem carro.");
                         ShowAdminMenu(playerid);
 
                         new
@@ -1330,8 +1125,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
                     houseIDReceiveCar = house;
                     adminCreatingVehicle[playerid] = true;
-                    SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Vá aonde você quer criar o carro (em uma rua de preferência) e digite {46FE00}/criaraqui.");
-                    SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Depois disso você poderá estacionar o veículo.");
+                    SendClientMessage(playerid, COLOR_INFO, "* Vá aonde você quer criar o carro (em uma rua de preferência) e digite {46FE00}/criaraqui.");
                     TogglePlayerControllable(playerid, 1);
                 }
                 case 8:
@@ -1341,7 +1135,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
 
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Não é possível vender uma casa que já está a venda.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Não é possível vender uma casa que já está a venda.");
                         ShowAdminMenu(playerid);
 
                         new
@@ -1397,9 +1191,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         	DestroyDynamicMapIcon(houseMapIcon[house]);
 
             Update3DText(house);
-            PlayerTextDrawShow(playerid, houseSold[playerid]);
-
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Casa colocada a venda com sucesso.");
 
             new
                 logString[128];
@@ -1422,7 +1214,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(sscanf(inputtext, "u", newOwnerID))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}ID ou nome inválido!");
+                SendClientMessage(playerid, COLOR_ERROR, "* ID ou nome inválido!");
                 ShowPlayerDialog(playerid, DIALOG_CHANGE_OWNER, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar o dono da casa.", "{FFFFFF}Digite o {FFFFFF}ID {FFFFFF}ou {FFFFFF}nickname {FFFFFF}do novo dono", "Continuar", "Cancelar");
                 return 1;
             }
@@ -1430,7 +1222,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(!IsPlayerConnected(newOwnerID) || newOwnerID == INVALID_PLAYER_ID)
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Player desconectado!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Player desconectado!");
                 ShowPlayerDialog(playerid, DIALOG_CHANGE_OWNER, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar o dono da casa.", "{FFFFFF}Digite o {FFFFFF}ID {FFFFFF}ou {FFFFFF}nickname {FFFFFF}do novo dono", "Continuar", "Cancelar");
                 return 1;
             }
@@ -1444,7 +1236,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(DOF2_FileExists(ownerFile))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Esse jogador já tem uma casa!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Esse jogador já tem uma casa!");
                 ShowPlayerDialog(playerid, DIALOG_CHANGE_OWNER, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar o dono da casa.", "{FFFFFF}Digite o {FFFFFF}ID {FFFFFF}ou {FFFFFF}nickname {FFFFFF}do novo dono", "Continuar", "Cancelar");
                 return 1;
             }
@@ -1510,12 +1302,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             format(houseData[house][houseOwner], 255, playerName);
 
-            PlayerTextDrawShow(playerid, houseEdited[playerid]);
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Dono da casa alterado com sucesso.");
 
             Update3DText(house);
-
-            SendClientMessage(playerid, -1, "{00F2FC}Feito!");
 
             return 1;
         }
@@ -1559,9 +1348,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 DestroyVehicle(houseVehicle[house][vehicleHouse]);
 
             DOF2_RemoveFile(filePath);
-            PlayerTextDrawShow(playerid, houseDeleted[playerid]);
 
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Casa removida com sucesso.");
+
             format(houseAtual, sizeof houseAtual, "LHouse/CasaAtual.txt");
 
             for(new i = 1; i < MAX_HOUSES; i++)
@@ -1587,7 +1376,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(!IsNumeric(inputtext))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Digite apenas números!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Digite apenas números!");
                 ShowPlayerDialog(playerid, DIALOG_EDIT_HOUSE_RENT_PRICE, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar o preço do aluguel.", "{FFFFFF}Digite o novo preço que você quer abaixo\n{FFFFFF}Use somente números.\n", "Alterar", "Cancelar");
                 return 1;
             }
@@ -1595,7 +1384,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(!strlen(inputtext))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Digite algo no campo ou cancele!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Digite algo no campo ou cancele!");
                 ShowPlayerDialog(playerid, DIALOG_EDIT_HOUSE_RENT_PRICE, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar o preço do aluguel.", "{FFFFFF}Digite o novo preço que você quer abaixo\n{FFFFFF}Use somente números.\n", "Alterar", "Cancelar");
                 return 1;
             }
@@ -1616,8 +1405,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             format(logString, sizeof logString, "O administrador %s[%d], alterou o preço da casa %d.", playerName, playerid, house);
             WriteLog(LOG_ADMIN, logString);
 
-            PlayerTextDrawShow(playerid, houseEdited[playerid]);
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Preço da casa alterado com sucesso.");
+
             Update3DText(house);
         }
         case DIALOG_HOUSE_TITLE_ADMIN:
@@ -1630,7 +1419,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if (!strlen(inputtext) && strlen(houseData[house][houseTitle]) > 0)
             {
-                SendClientMessage(playerid, -1, "Você removeu o título da casa.");
+                SendClientMessage(playerid, COLOR_INFO, "* Você removeu o título da casa.");
                 format(houseData[house][houseTitle], 32, "%s", inputtext);
                 Update3DText(house);
                 return 1;
@@ -1638,7 +1427,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             else if (!strlen(inputtext) && strlen(houseData[house][houseTitle]) == 0)
             {
-                SendClientMessage(playerid, -1, "A casa ainda não tem um título, portanto não é possível remove-lo.");
+                SendClientMessage(playerid, COLOR_WARNING, "* A casa ainda não tem um título, portanto não é possível remove-lo.");
                 ShowPlayerDialog(playerid, DIALOG_HOUSE_TITLE_ADMIN, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar o título dessa casa.", "{FFFFFF}Digite o novo título da casa.\n\nTítulo anterior: {FFFFFF}SEM TÍTULO\n", "Alterar", "Voltar");
                 return 1;
             }
@@ -1655,7 +1444,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             DOF2_SetString(file, "Título", houseData[house][houseTitle], "Informações");
             DOF2_SaveFile();
 
-            SendClientMessage(playerid, -1, "Título alterado com sucesso.");
+            SendClientMessage(playerid, COLOR_INFO, "* Título alterado com sucesso.");
 
             format(logString, sizeof logString, "O jogador/administrador %s[%d], alterou o título da casa %d para %s.", playerName, playerid, house, houseData[house][houseTitle]);
             WriteLog(LOG_ADMIN, logString);
@@ -1671,7 +1460,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if (!strlen(inputtext) && strlen(houseData[house][houseTitle]) > 0)
             {
-                SendClientMessage(playerid, -1, "Você removeu o título da casa.");
+                SendClientMessage(playerid, COLOR_WARNING, "* Você removeu o título da casa.");
                 format(houseData[house][houseTitle], 32, "%s", inputtext);
                 Update3DText(house);
                 return 1;
@@ -1679,7 +1468,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             else if (!strlen(inputtext) && strlen(houseData[house][houseTitle]) == 0)
             {
-                SendClientMessage(playerid, -1, "A casa ainda não tem um título, portanto não é possível remove-lo.");
+                SendClientMessage(playerid, COLOR_WARNING, "* A casa ainda não tem um título, portanto não é possível remove-lo.");
                 ShowPlayerDialog(playerid, DIALOG_HOUSE_TITLE_ADMIN, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar o título dessa casa.", "{FFFFFF}Digite o novo título da casa.\n\nTítulo anterior: {FFFFFF}SEM TÍTULO\n", "Alterar", "Voltar");
                 return 1;
             }
@@ -1696,7 +1485,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             DOF2_SetString(file, "Título", houseData[house][houseTitle], "Informações");
             DOF2_SaveFile();
 
-            SendClientMessage(playerid, -1, "Título alterado com sucesso.");
+            SendClientMessage(playerid, COLOR_INFO, "* Título alterado com sucesso.");
 
             format(logString, sizeof logString, "O jogador/administrador %s[%d], alterou o título da casa %d para %s.", playerName, playerid, house, houseData[house][houseTitle]);
             WriteLog(LOG_ADMIN, logString);
@@ -1712,7 +1501,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(!IsNumeric(inputtext))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Digite apenas números!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Digite apenas números!");
                 ShowPlayerDialog(playerid, DIALOG_EDIT_HOUSE_PRICE, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar o preço da casa.", "{FFFFFF}Digite o novo preço que você quer abaixo\n{FFFFFF}Use somente números.\n", "Alterar", "Cancelar");
                 return 1;
             }
@@ -1721,7 +1510,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             {
                 GetPlayerPos(playerid, X, Y, Z);
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Digite algo no campo ou cancele!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Digite algo no campo ou cancele!");
                 ShowPlayerDialog(playerid, DIALOG_EDIT_HOUSE_PRICE, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar o preço da casa.", "{FFFFFF}Digite o novo preço que você quer abaixo\n{FFFFFF}Use somente números.\n", "Alterar", "Cancelar");
                 return 1;
             }
@@ -1741,8 +1530,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             WriteLog(LOG_ADMIN, logString);
 
             Update3DText(house);
-            PlayerTextDrawShow(playerid, houseEdited[playerid]);
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Preço do aluguel alterado com sucesso.");
         }
         case DIALOG_EDIT_HOUSE_INT:
         {
@@ -1860,10 +1649,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             DOF2_SetInt(file, "Interior", houseInteriorInt[playerid], "Coordenadas");
             DOF2_SaveFile();
 
-            PlayerTextDrawShow(playerid, houseEdited[playerid]);
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
-
-            SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Interior alterado com sucesso");
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Interior da casa alterado com sucesso.");
 
         	DestroyDynamicPickup(housePickupOut[house]);
             housePickupOut[house] = CreateDynamicPickup(1318, 1, houseData[house][houseIntX], houseData[house][houseIntY], houseData[house][houseIntZ]);
@@ -1904,7 +1690,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         alreadyOwner = DOF2_GetInt(ownerFile, "houseID");
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
-                        format(string, sizeof string, "{F90700}Erro: {FFFFFF}Você já é dono da casa %d! Você só pode ter 1 casa!", alreadyOwner);
+                        format(string, sizeof string, "* Você já é dono da casa %d! Você só pode ter 1 casa!", alreadyOwner);
                         SendClientMessage(playerid, COLOR_ERROR, string);
                         TogglePlayerControllable(playerid, 1);
                         return 1;
@@ -1915,7 +1701,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         alreadyOwner = DOF2_GetInt(tenantFile, "houseID");
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
-                        format(string, sizeof string, "{F90700}Erro: {FFFFFF}Você já é locador da casa %d! Você só pode ter 1 casa!", alreadyOwner);
+                        format(string, sizeof string, "* Você já é locador da casa %d! Você só pode ter 1 casa!", alreadyOwner);
                         SendClientMessage(playerid, COLOR_ERROR, string);
                         return 1;
                     }
@@ -1924,7 +1710,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                     {
                         GetPlayerPos(playerid, X, Y, Z);
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não tem dinheiro o suficiente.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Você não tem dinheiro o suficiente.");
                         TogglePlayerControllable(playerid, 1);
                         return 1;
                     }
@@ -1952,8 +1738,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                     houseMapIcon[house] = CreateDynamicMapIcon(houseData[house][houseX], houseData[house][houseY], houseData[house][houseZ], 32, -1, -1, 0, -1, 100.0);
 
                     Update3DText(house);
-                    PlayerTextDrawShow(playerid, welcome[playerid]);
-                    SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                    SendClientMessage(playerid, COLOR_INFO, "* Bem vindo!");
 
                     format(logString, sizeof logString, "O jogador %s[%d], comprou a casa %d.", playerName, playerid, house);
                     WriteLog(LOG_HOUSES, logString);
@@ -1986,8 +1771,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         SetPlayerInterior(playerid, houseData[house][houseInterior]);
 
                         TogglePlayerControllable(playerid, 1);
-                        PlayerTextDrawShow(playerid, welcome[playerid]);
-                        SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                        SendClientMessage(playerid, COLOR_INFO, "* Bem vindo!");
+
 
                         GetPlayerName(playerid, playerName, MAX_PLAYER_NAME);
                         format(logString, sizeof logString, "O jogador %s[%d], entrou na casa %d como locador.", playerName, playerid, house);
@@ -2028,8 +1813,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         SetPlayerInterior(playerid, houseData[house][houseInterior]);
 
                         TogglePlayerControllable(playerid, 1);
-                        PlayerTextDrawShow(playerid, welcome[playerid]);
-                        SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                        SendClientMessage(playerid, COLOR_INFO, "* Bem vindo!");
+
 
                         new
                             logString[128];
@@ -2056,7 +1841,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 	if(houseVehicle[house][vehicleModel] != 0)
                     {
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Sua casa já tem um carro. Venda-o antes.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Sua casa já tem um carro. Venda-o antes.");
                         TogglePlayerControllable(playerid, 1);
                         return 1;
                     }
@@ -2099,7 +1884,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 	if(houseVehicle[house][vehicleModel] != 0)
                     {
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Sua casa casa tem um carro. Venda-o antes de vender sua casa.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Sua casa casa tem um carro. Venda-o antes de vender sua casa.");
                         TogglePlayerControllable(playerid, 1);
                         return 1;
                     }
@@ -2123,7 +1908,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                     if(houseData[house][houseRentable] == 0)
                     {
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Sua casa casa não está sendo alugada. Ative o aluguel antes.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Sua casa casa não está sendo alugada. Ative o aluguel antes.");
                         TogglePlayerControllable(playerid, 1);
                         return 1;
                     }
@@ -2131,7 +1916,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 	if(!strcmp(houseData[house][houseTenant], "Ninguem", false))
                     {
                         PlayerPlaySound(playerid, 1085, X, Y, Z);
-                        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Não tem ninguém alugando sua casa no momento.");
+                        SendClientMessage(playerid, COLOR_ERROR, "* Não tem ninguém alugando sua casa no momento.");
                         TogglePlayerControllable(playerid, 1);
                         return 1;
                     }
@@ -2196,7 +1981,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         if(oldArmour > 0)
                         {
                             PlayerPlaySound(playerid, 1085, X, Y, Z);
-                            SendClientMessage(playerid, -1, "{F90700}Erro: {FFFFFF}Você só pode pegar um colete quando você não estiver usando um.");
+                            SendClientMessage(playerid, COLOR_WARNING, "* Você só pode pegar um colete quando você não estiver usando um.");
                             ShowStorageMenu(playerid, 1);
                             printf("debug: oldArmour = %f, error 00245", oldArmour);
                             return 1;
@@ -2206,7 +1991,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         houseData[house][houseArmourStored][s] = 0;
                         ShowStorageMenu(playerid, 1);
 
-                        SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Você vestiu o colete com sucesso.");
+                        SendClientMessage(playerid, COLOR_INFO, "* Você vestiu o colete com sucesso.");
 
                         if(!DOF2_FileExists(storageFile))
                             DOF2_CreateFile(storageFile);
@@ -2222,14 +2007,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         if(oldArmour == 0)
                         {
                             PlayerPlaySound(playerid, 1085, X, Y, Z);
-                            SendClientMessage(playerid, -1, "{F90700}Erro: {FFFFFF}Você não tem colete para armazenar.");
+                            SendClientMessage(playerid, COLOR_WARNING, "* Você não tem colete para armazenar.");
                             ShowStorageMenu(playerid, 1);
                             return 1;
                         }
                         else if(oldArmour >= 1 && oldArmour <= 99)
                         {
                             PlayerPlaySound(playerid, 1085, X, Y, Z);
-                            SendClientMessage(playerid, -1, "{F90700}Erro: {FFFFFF}É necessário que o seu colete esteja totalmente cheio para que possa ser armazenado.");
+                            SendClientMessage(playerid, COLOR_WARNING, "* É necessário que o seu colete esteja totalmente cheio para que possa ser armazenado.");
                             ShowStorageMenu(playerid, 1);
                             return 1;
                         }
@@ -2238,7 +2023,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                         SetPlayerArmour(playerid, 0);
                         ShowStorageMenu(playerid, 1);
 
-                        SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Colete armazenado com sucesso.");
+                        SendClientMessage(playerid, COLOR_INFO, "* Colete armazenado com sucesso.");
 
                         if(!DOF2_FileExists(storageFile))
                             DOF2_CreateFile(storageFile);
@@ -2279,14 +2064,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 }
             }
 
-            format(string, sizeof string, "[{FFEC00}LHouse{FFFFFF}] Você foi despejado. Procure {46FE00}%s {FFFFFF}para saber o motivo.", houseData[house][houseOwner]);
-            format(string2, sizeof string2, "[{FFEC00}LHouse{FFFFFF}] Você despejou {46FE00}%s {FFFFFF}com sucesso, ele deve te procurar para saber o motivo.", houseData[house][houseTenant]);
+            format(string, sizeof string, "* Você foi despejado. Procure {46FE00}%s {FFFFFF}para saber o motivo.", houseData[house][houseOwner]);
+            format(string2, sizeof string2, "* Você despejou {46FE00}%s {FFFFFF}com sucesso, ele deve te procurar para saber o motivo.", houseData[house][houseTenant]);
 
             format(tenantFile, sizeof tenantFile, "LHouse/Locadores/%s.txt", houseData[house][houseTenant]);
             format(houseFile, sizeof houseFile, "LHouse/Casas/Casa %d.txt", house);
 
-            SendClientMessage(houseData[house][houseTenant], -1, string);
-            SendClientMessage(playerid, -1, string2);
+            SendClientMessage(houseData[house][houseTenant], COLOR_INFO, string);
+            SendClientMessage(playerid, COLOR_INFO, string2);
 
             GetPlayerName(houseData[house][houseTenant], playerName2, MAX_PLAYER_NAME);
             GetPlayerName(playerid, playerName, MAX_PLAYER_NAME);
@@ -2323,7 +2108,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             else if(!IsPlayerConnected(targetID) || targetID == INVALID_PLAYER_ID)
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Jogador não conectado!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Jogador não conectado!");
                 ShowPlayerDialog(playerid, DIALOG_HOUSE_SELL_PLAYER, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu vender sua casa para um player.", "{FFFFFF}Digite o ID/playerName do player abaixo, é possível utilizar parte do nick quanto ID do player\n", "Próximo", "Cancelar");
                 return 1;
             }
@@ -2336,7 +2121,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(DOF2_FileExists(tenantFile))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Este player já é locador de uma casa!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Este player já é locador de uma casa!");
                 ShowPlayerDialog(playerid, DIALOG_HOUSE_SELL_PLAYER, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu vender sua casa para um player.", "{FFFFFF}Digite o ID/playerName do player abaixo, é possível utilizar parte do nick quanto ID do player\n", "Próximo", "Cancelar");
                 return 1;
             }
@@ -2344,7 +2129,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             else if(DOF2_FileExists(ownerFile))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Este player já é dono de uma casa!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Este player já é dono de uma casa!");
                 ShowPlayerDialog(playerid, DIALOG_HOUSE_SELL_PLAYER, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu vender sua casa para um player.", "{FFFFFF}Digite o ID/playerName do player abaixo, é possível utilizar parte do nick quanto ID do player\n", "Próximo", "Cancelar");
                 return 1;
             }
@@ -2352,7 +2137,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             else if(playerid == targetID)
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não pode vender a casa para você mesmo!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Você não pode vender a casa para você mesmo!");
                 ShowPlayerDialog(playerid, DIALOG_HOUSE_SELL_PLAYER, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu vender sua casa para um player.", "{FFFFFF}Digite o ID/playerName do player abaixo, é possível utilizar parte do nick quanto ID do player\n", "Próximo", "Cancelar");
                 return 1;
             }
@@ -2416,7 +2201,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if (!IsPlayerConnected(playerReceiveHouse) || playerReceiveHouse == INVALID_PLAYER_ID)
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}O jogador se desconectou!");
+                SendClientMessage(playerid, COLOR_ERROR, "* O jogador se desconectou!");
                 playerReceiveHouse = 0;
                 return 1;
             }
@@ -2457,8 +2242,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 new
                     string[128];
 
-                format(string, sizeof string, "O jogador {00F2FC}%s {FFFFFF}negou a sua oferta de comprar a casa número {00F2FC}%d {FFFFFF}por {00F2FC}$%d", playerName, houseSellingID, priceReceiveHouse);
-                SendClientMessage(playerIDOffer, -1, string);
+                format(string, sizeof string, "* O jogador {00F2FC}%s {FFFFFF}negou a sua oferta de comprar a casa número {00F2FC}%d {FFFFFF}por {00F2FC}$%d", playerName, houseSellingID, priceReceiveHouse);
+                SendClientMessage(playerIDOffer, COLOR_INFO, string);
                 return 1;
             }
 
@@ -2470,9 +2255,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 new
                     string[150];
 
-                format(string, sizeof string, "O jogador {00F2FC}%s {FFFFFF}não tem dinheiro o suficiente para comprar a casa número {00F2FC}%d {FFFFFF}por {00F2FC}$%d", playerName, houseSellingID, priceReceiveHouse);
-                SendClientMessage(playerIDOffer, -1, string);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não tem dinheiro o suficiente!");
+                format(string, sizeof string, "* O jogador {00F2FC}%s {FFFFFF}não tem dinheiro o suficiente para comprar a casa número {00F2FC}%d {FFFFFF}por {00F2FC}$%d", playerName, houseSellingID, priceReceiveHouse);
+                SendClientMessage(playerIDOffer, COLOR_INFO, string);
+                SendClientMessage(playerid, COLOR_ERROR, "* Você não tem dinheiro o suficiente!");
                 return 1;
             }
 
@@ -2486,8 +2271,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             GivePlayerMoney(playerid, -priceReceiveHouse);
             GivePlayerMoney(playerIDOffer, priceReceiveHouse);
 
-            SendClientMessage(playerid, -1, "{00F2FC}Negócio fechado! {FFFFFF}Divirta-se!");
-            SendClientMessage(playerIDOffer, -1, "{00F2FC}Negócio fechado! {FFFFFF}Divirta-se!");
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Negócio fechado! Divirta-se!");
+            SendClientMessage(playerIDOffer, COLOR_SUCCESS, "* Negócio fechado! Divirta-se!");
 
             GetPlayerName(playerIDOffer, playerName2, 24);
 
@@ -2508,14 +2293,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			TogglePlayerControllable(playerid, 1);
 			TogglePlayerControllable(playerIDOffer, 1);
 
-			PlayerTextDrawShow(playerid, welcome[playerid]);
+			SendClientMessage(playerid, COLOR_INFO, "* Bem vindo!");
 
             new
                 logString[128];
 
             format(logString, sizeof logString, "O jogador %s[%d], vendeu a casa %d para o jogador %s[%d] por $%d.", playerName2, playerIDOffer, house, playerName, playerid, priceReceiveHouse);
             WriteLog(LOG_HOUSES, logString);
-			SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+
 			Update3DText(house);
         }
         case DIALOG_RENT:
@@ -2529,7 +2314,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             {
                 if(houseData[house][houseRentable] == 1)
                 {
-                    SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}O aluguel da sua casa já está ativado!");
+                    SendClientMessage(playerid, COLOR_ERROR, "* O aluguel da sua casa já está ativado!");
                     PlayerPlaySound(playerid, 1085, X, Y, Z);
                     return 1;
                 }
@@ -2539,7 +2324,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             {
                 if(houseData[house][houseRentable] == 0)
                 {
-                    SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}O aluguel da sua casa já está desativado!");
+                    SendClientMessage(playerid, COLOR_ERROR, "* O aluguel da sua casa já está desativado!");
                     PlayerPlaySound(playerid, 1085, X, Y, Z);
                     return 1;
                 }
@@ -2548,15 +2333,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 {
                     GetPlayerPos(playerid, X, Y, Z);
                     PlayerPlaySound(playerid, 1085, X, Y, Z);
-                    SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Não é possível desativar o aluguel com alguém alugando sua casa.");
+                    SendClientMessage(playerid, COLOR_ERROR, "* Não é possível desativar o aluguel com alguém alugando sua casa.");
                     TogglePlayerControllable(playerid, 1);
                     return 1;
                 }
 
                 houseData[house][houseRentable] = 0;
                 Update3DText(house);
-                PlayerTextDrawShow(playerid, rentDisabled[playerid]);
-                SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                SendClientMessage(playerid, COLOR_SUCCESS, "* Aluguel desativado com sucesso.");
+
 
                 new
                     logString[128];
@@ -2576,7 +2361,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(!IsNumeric(inputtext))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Digite apenas números!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Digite apenas números!");
                 ShowPlayerDialog(playerid, DIALOG_RENT_PRICE, DIALOG_STYLE_INPUT, "{00F2FC}Insira o valor do aluguel.", "{FFFFFF}Insira o valor do aluguel que você quer.\nEsse valor vai ser entregue na sua casa a cada 24 horas se haver um locador na sua casa\n{FFFFFF}Use somente números.\n", "Alugar!", "Cancelar");
                 return 1;
             }
@@ -2584,7 +2369,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             if(!strlen(inputtext))
             {
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Digite algo no campo ou cancele!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Digite algo no campo ou cancele!");
                 ShowPlayerDialog(playerid, DIALOG_RENT_PRICE, DIALOG_STYLE_INPUT, "{00F2FC}Insira o valor do aluguel.", "{FFFFFF}Insira o valor do aluguel que você quer.\nEsse valor vai ser entregue na sua casa a cada 24 horas se haver um locador na sua casa\n{FFFFFF}Use somente números.\n", "Alugar!", "Cancelar");
                 return 1;
             }
@@ -2604,8 +2389,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             DOF2_SaveFile();
 
             Update3DText(house);
-            PlayerTextDrawShow(playerid, rentEnabled[playerid]);
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Aluguel ativado com sucesso.");
+
 
             GetPlayerName(playerid, playerName, MAX_PLAYER_NAME);
             format(logString, sizeof logString, "O jogador %s[%d], ativou o aluguel da casa %d por $%d.", playerName, playerid, house, houseData[house][houseRentPrice]);
@@ -2754,12 +2539,12 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             }
 
             CreateHouse(house, X, Y, Z, houseInteriorX[playerid], houseInteriorY[playerid], houseInteriorZ[playerid], houseInteriorFA[playerid], houseIntPrice[playerid], houseInteriorInt[playerid]);
-            PlayerTextDrawShow(playerid, houseCreated[playerid]);
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Casa criada com sucesso.");
             GetPlayerName(playerid, playerName, MAX_PLAYER_NAME);
 
             format(logString, sizeof logString, "O administrador %s[%d], criou a casa %d.", playerName, playerid, house);
             WriteLog(LOG_ADMIN, logString);
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+
         }
         case DIALOG_CAR_MENU:
         {
@@ -2783,9 +2568,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                     houseCarSet[playerid] = true;
 
                     if(!IsPlayerInVehicle(playerid, houseVehicle[house][vehicleHouse]))
-                        return SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Entre no carro, estacione em um local e digite {46FE00}/estacionar{FFFFFF}.");
+                        return SendClientMessage(playerid, COLOR_INFO, "* Entre no carro, estacione em um local e digite {46FE00}/estacionar{FFFFFF}.");
 
-                    SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Estacione em um local e digite {46FE00}/estacionar{FFFFFF}.");
+                    SendClientMessage(playerid, COLOR_INFO, "* Estacione em um local e digite {46FE00}/estacionar{FFFFFF}.");
                 }
                 case 1:
                 {
@@ -2855,7 +2640,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if(!response)
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você cancelou!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Você cancelou!");
 
                 DestroyVehicle(carSetted[playerid]);
 
@@ -3041,7 +2826,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             {
                 GetPlayerPos(playerid, X, Y, Z);
                 PlayerPlaySound(playerid, 1085, X, Y, Z);
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não digitou nada ou digitou mais do que 8 caracteres!");
+                SendClientMessage(playerid, COLOR_ERROR, "* Você não digitou nada ou digitou mais do que 8 caracteres!");
 
                 ShowPlayerDialog(playerid, DIALOG_CHANGE_PLATE, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu alterar a placa do seu carro.", "{FFFFFF}Digite a nova placa.\n{FFFFFF}O número máximo de caracteres é 8!", "Alterar", "Voltar");
                 return 1;
@@ -3072,9 +2857,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			DOF2_SetString(housePath, "Placa", houseVehicle[house][vehiclePlate], "Veículo");
 			DOF2_SaveFile();
 
-			PlayerTextDrawShow(playerid, vehicleModified[playerid]);
-
-			SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+			SendClientMessage(playerid, COLOR_SUCCESS, "* Veículo atualizado com sucesso.");
 
             format(logString, sizeof logString, "O jogador %s[%d], mudou a placa do carro da casa %d para %s.", playerName, playerid, house, plate);
             WriteLog(LOG_VEHICLES, logString);
@@ -3088,21 +2871,21 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if (!strval(inputtext))
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Utilize somente números.");
+                SendClientMessage(playerid, COLOR_ERROR, "* Utilize somente números.");
                 ShowPlayerDialog(playerid, DIALOG_CAR_COLOR_1, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar a cor do seu carro.", "{FFFFFF}Insira a cor 1 do carro.\n{FFFFFF}Utilize somente números de 0 a 255!", "Continuar", "Voltar");
                 return 1;
             }
 
             else if (!strlen(inputtext))
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Nâo deixe o campo vazio.");
+                SendClientMessage(playerid, COLOR_ERROR, "* Nâo deixe o campo vazio.");
                 ShowPlayerDialog(playerid, DIALOG_CAR_COLOR_1, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar a cor do seu carro.", "{FFFFFF}Insira a cor 1 do carro.\n{FFFFFF}Utilize somente números de 0 a 255!", "Continuar", "Voltar");
                 return 1;
             }
 
             else if (0 > strval(inputtext) || strval(inputtext) > 255)
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Use somente IDs entre 0 e 255.");
+                SendClientMessage(playerid, COLOR_ERROR, "* Use somente IDs entre 0 e 255.");
                 ShowPlayerDialog(playerid, DIALOG_CAR_COLOR_1, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar a cor do seu carro.", "{FFFFFF}Insira a cor 1 do carro.\n{FFFFFF}Utilize somente números de 0 a 255!", "Continuar", "Voltar");
                 return 1;
             }
@@ -3121,21 +2904,21 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             if (!strval(inputtext))
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Utilize somente números.");
+                SendClientMessage(playerid, COLOR_ERROR, "* Utilize somente números.");
                 ShowPlayerDialog(playerid, DIALOG_CAR_COLOR_2, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar a cor do seu carro.", "{FFFFFF}Agora insira a cor 2 do carro.\n{FFFFFF}Utilize somente números de 0 a 255!", "Continuar", "Voltar");
                 return 1;
             }
 
             else if (!strlen(inputtext))
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Nâo deixe o campo vazio.");
+                SendClientMessage(playerid, COLOR_ERROR, "* Nâo deixe o campo vazio.");
                 ShowPlayerDialog(playerid, DIALOG_CAR_COLOR_2, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar a cor do seu carro.", "{FFFFFF}Agora insira a cor 2 do carro.\n{FFFFFF}Utilize somente números de 0 a 255!", "Continuar", "Voltar");
                 return 1;
             }
 
             else if (0 > strval(inputtext) || strval(inputtext) > 255)
             {
-                SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Use somente IDs entre 0 e 255.");
+                SendClientMessage(playerid, COLOR_ERROR, "* Use somente IDs entre 0 e 255.");
                 ShowPlayerDialog(playerid, DIALOG_CAR_COLOR_2, DIALOG_STYLE_INPUT, "{00F2FC}Você escolheu mudar a cor do seu carro.", "{FFFFFF}Agora insira a cor 2 do carro.\n{FFFFFF}Utilize somente números de 0 a 255!", "Continuar", "Voltar");
                 return 1;
             }
@@ -3160,10 +2943,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             format(logString, sizeof logString, "O jogador %s[%d], alterou a cor do carro da casa %d.", playerName, playerid, house);
             WriteLog(LOG_VEHICLES, logString);
 
-            SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Cores atualizadas com sucesso!");
-            PlayerTextDrawShow(playerid, vehicleModified[playerid]);
-
-            SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+            SendClientMessage(playerid, COLOR_SUCCESS, "* Veículo atualizado com sucesso.");
         }
         case DIALOG_CAR_MODELS_CHANGE:
         {
@@ -3189,7 +2969,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 19000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3201,7 +2981,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 25000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3213,7 +2993,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 26000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3225,7 +3005,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 27000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3237,7 +3017,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 28000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3249,7 +3029,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 29000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3261,7 +3041,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 32000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3273,7 +3053,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 35000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3285,7 +3065,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 38000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3297,7 +3077,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 42000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3309,7 +3089,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 65000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3321,7 +3101,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 131000)
 			     	{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3333,7 +3113,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 145000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3345,7 +3125,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 150000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3357,7 +3137,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 230000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3369,7 +3149,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 250000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3381,7 +3161,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 500000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3393,7 +3173,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 700000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3405,7 +3185,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 850000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3417,7 +3197,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 40000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3429,7 +3209,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 55000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3441,7 +3221,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 60000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3453,7 +3233,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 80000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3465,7 +3245,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 150000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3494,7 +3274,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 19000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3507,7 +3287,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 25000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3520,7 +3300,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 26000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3533,7 +3313,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 27000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
                     }
@@ -3546,7 +3326,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 28000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3559,7 +3339,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 29000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3572,7 +3352,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 32000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3585,7 +3365,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 35000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3598,7 +3378,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 38000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3611,7 +3391,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 42000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3624,7 +3404,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 65000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3637,7 +3417,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 131000)
 			     	{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3650,7 +3430,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 145000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3663,7 +3443,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 150000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3676,7 +3456,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 230000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3689,7 +3469,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 250000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3702,7 +3482,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 500000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3715,7 +3495,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 700000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3728,7 +3508,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 850000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3741,7 +3521,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 40000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3754,7 +3534,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 55000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3767,7 +3547,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 60000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3780,7 +3560,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 80000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3793,7 +3573,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					if(GetPlayerMoney(playerid) < 150000)
 					{
-						SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro insuficiente.");
+						SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro insuficiente.");
 						TogglePlayerControllable(playerid, 1);
 						return 1;
 					}
@@ -3849,14 +3629,12 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             carSell = houseVehicle[house][vehiclePrice]/2;
 			GivePlayerMoney(playerid, carSell);
 
-			format(string, sizeof string, "[{FFEC00}LHouse{FFFFFF}] Você vendeu seu carro por: {00EAFA}$%d", carSell);
-			SendClientMessage(playerid, -1, string);
-
-			PlayerTextDrawShow(playerid, vehicleSold[playerid]);
+			format(string, sizeof string, "* Você vendeu seu carro por: {00EAFA}$%d", carSell);
+			SendClientMessage(playerid, COLOR_SUCCESS, string);
 
             format(logString, sizeof logString, "O jogador %s[%d], vendeu o carro da casa %d.", playerName, playerid, house);
             WriteLog(LOG_VEHICLES, logString);
-			SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+
         }
         case DIALOG_HOUSE_STATUS:
         {
@@ -3873,7 +3651,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             {
                 if(houseData[house][houseStatus] == 0)
                 {
-                    SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}A casa já está destrancada!");
+                    SendClientMessage(playerid, COLOR_ERROR, "* A casa já está destrancada!");
                     PlayerPlaySound(playerid, 1085, X, Y, Z);
                     return 1;
                 }
@@ -3883,8 +3661,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 DOF2_SetInt(filePath, "Status", 0, "Informações");
                 DOF2_SaveFile();
 
-                PlayerTextDrawShow(playerid, houseUnlocked[playerid]);
-                SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                SendClientMessage(playerid, COLOR_SUCCESS, "* Casa destrancada com sucesso");
 
                 new
                     logString[128];
@@ -3898,7 +3675,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 if(houseData[house][houseStatus] == 1)
                 {
                     PlayerPlaySound(playerid, 1085, X, Y, Z);
-                    SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}A casa já está trancada!");
+                    SendClientMessage(playerid, COLOR_ERROR, "* A casa já está trancada!");
                     return 1;
                 }
 
@@ -3907,8 +3684,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 DOF2_SetInt(filePath, "Status", 1, "Informações");
                 DOF2_SaveFile();
 
-                PlayerTextDrawShow(playerid, houseLocked[playerid]);
-                SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+                SendClientMessage(playerid, COLOR_SUCCESS, "* Casa trancada com sucesso");
 
                 new
                     logString[128];
@@ -3943,10 +3719,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
             totalPrice = houseData[house][housePrice]/2;
 
-            format(annMessage, sizeof annMessage, "[{FFEC00}LHouse{FFFFFF}] Você vendeu sua casa por $%d", totalPrice);
-			SendClientMessage(playerid, -1, annMessage);
-
 			GivePlayerMoney(playerid, totalPrice);
+
+            format(annMessage, sizeof annMessage, "* Você vendeu sua casa por $%d", totalPrice);
+			SendClientMessage(playerid, COLOR_SUCCESS, annMessage);
 
 			houseData[house][houseStatus] = DOF2_SetInt(housePath, "Status", 1, "Informações");
 			format(houseData[house][houseOwner], 255, "Ninguem");
@@ -3971,11 +3747,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			houseMapIcon[house] = CreateDynamicMapIcon(houseData[house][houseX], houseData[house][houseY], houseData[house][houseZ], 31, -1, -1, 0, -1, 100.0);
 			housePickupIn[house] = CreateDynamicPickup(1273, 23, houseData[house][houseX], houseData[house][houseY], houseData[house][houseZ]);
-			PlayerTextDrawShow(playerid, houseSold[playerid]);
 
             format(logString, sizeof logString, "O jogador %s[%d], vendeu a casa %d.", playerName, playerid, house);
             WriteLog(LOG_HOUSES, logString);
-			SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+
         }
     }
     return 0;
@@ -3997,14 +3772,14 @@ CMD:menucarro(playerid)
 
     if(!DOF2_FileExists(ownerFile))
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não tem casa!");
+        SendClientMessage(playerid, COLOR_ERROR, "* Você não tem casa!");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
 
     if(houseVehicle[house][vehicleModel] == 0)
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Sua casa não tem um veículo!");
+        SendClientMessage(playerid, COLOR_ERROR, "* Sua casa não tem um veículo!");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
@@ -4016,7 +3791,7 @@ CMD:menucarro(playerid)
 
     if(!IsPlayerInRangeOfPoint(playerid, 20, vehiclePos[0], vehiclePos[1], vehiclePos[2]))
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}O veículo está muito longe!");
+        SendClientMessage(playerid, COLOR_ERROR, "* O veículo está muito longe!");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
@@ -4040,14 +3815,14 @@ CMD:rebocarcarro(playerid)
 
     if(!DOF2_FileExists(ownerFile))
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não tem casa!");
+        SendClientMessage(playerid, COLOR_ERROR, "* Você não tem casa!");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
 
     if(houseVehicle[house][vehicleModel] == 0)
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Sua casa não tem um veículo!");
+        SendClientMessage(playerid, COLOR_ERROR, "* Sua casa não tem um veículo!");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
@@ -4056,7 +3831,7 @@ CMD:rebocarcarro(playerid)
     {
         GetPlayerPos(playerid, X, Y, Z);
         PlayerPlaySound(playerid, 1085, X, Y, Z);
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Dinheiro Insuficiente!");
+        SendClientMessage(playerid, COLOR_ERROR, "* Dinheiro Insuficiente!");
         TogglePlayerControllable(playerid, 1);
 
         return 1;
@@ -4066,10 +3841,11 @@ CMD:rebocarcarro(playerid)
         string[128];
 
     format(string, 128, "Você solicitou o reboque do seu veículo por $%d.", houseVehicle[house][vehiclePrice]/20);
+    SendClientMessage(playerid, COLOR_INFO, string);
+
+    SendClientMessage(playerid, COLOR_INFO, "Ele será entregue na sua casa em até 3 minutos nas condições em que for encontrado");
 
     towRequired[house] = 1;
-    SendClientMessage(playerid, -1, string);
-    SendClientMessage(playerid, -1, "Ele será entregue na sua casa em até 3 minutos nas condições em que for encontrado");
     GivePlayerMoney(playerid, -houseVehicle[house][vehiclePrice]/20);
 
     new
@@ -4090,7 +3866,7 @@ CMD:estacionar(playerid)
 
     if(!IsPlayerInAnyVehicle(playerid))
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Você não está em nenhum veículo!");
+        SendClientMessage(playerid, COLOR_ERROR, "* Você não está em nenhum veículo!");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
@@ -4194,7 +3970,7 @@ CMD:estacionar(playerid)
             GetVehiclePos(vehicleHouseCarDefined[house], X, Y, Z);
             GetVehicleZAngle(vehicleHouseCarDefined[house], PlayerFA);
             DestroyVehicle(vehicleHouseCarDefined[house]);
-            SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Carro salvo com sucesso!");
+            SendClientMessage(playerid, COLOR_INFO, "* Carro salvo com sucesso!");
 
             houseCarSet[playerid] = false;
     		houseVehicle[house][vehicleX] = X;
@@ -4222,7 +3998,7 @@ CMD:estacionar(playerid)
     }
     if(houseCarSetPos[playerid] == 1)
     {
-        SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Carro salvo com sucesso!");
+        SendClientMessage(playerid, COLOR_INFO, "* Carro salvo com sucesso!");
 
         new
             CarroP = GetPlayerVehicleID(playerid),
@@ -4256,8 +4032,8 @@ CMD:ircasa(playerid, params[])
 
     if(!IsPlayerAdmin(playerid))
     {
-        PlayerTextDrawShow(playerid, noAutorization[playerid]);
-        SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+        SendClientMessage(playerid, COLOR_ERROR, "* Sem autorização.");
+
         GetPlayerPos(playerid, X, Y, Z);
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
@@ -4268,7 +4044,7 @@ CMD:ircasa(playerid, params[])
 
     if(sscanf(params, "i", house))
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Use: {46FE00}/ircasa {00E5FF}[houseID]");
+        SendClientMessage(playerid, COLOR_ERROR, "* Use: {46FE00}/ircasa {00E5FF}[houseID]");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
@@ -4280,7 +4056,7 @@ CMD:ircasa(playerid, params[])
 
     if(!DOF2_FileExists(filePath))
     {
-        SendClientMessage(playerid, COLOR_ERROR, "{F90700}Erro: {FFFFFF}Essa casa não existe!");
+        SendClientMessage(playerid, COLOR_ERROR, "* Essa casa não existe!");
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
     }
@@ -4304,8 +4080,8 @@ CMD:ircasa(playerid, params[])
         PutPlayerInVehicle(playerid, v, 0);
     }
 
-    format(string, sizeof string, "[{FFEC00}LHouse{FFFFFF}] Você foi até a casa número {00E5FF}%d", house);
-    SendClientMessage(playerid, -1, string);
+    format(string, sizeof string, "* Você foi até a casa de ID {00E5FF}%d", house);
+    SendClientMessage(playerid, COLOR_INFO, string);
 
     new
         logString[128];
@@ -4480,8 +4256,8 @@ ShowCreateHouseDialog(playerid)
 
     if(!IsPlayerAdmin(playerid))
     {
-        PlayerTextDrawShow(playerid, noAutorization[playerid]);
-        SetTimerEx("HideTextdraws", 2000, false, "i", playerid);
+        SendClientMessage(playerid, COLOR_ERROR, "* Sem autorização.");
+
         GetPlayerPos(playerid, X, Y, Z);
         PlayerPlaySound(playerid, 1085, X, Y, Z);
         return 1;
@@ -5021,7 +4797,7 @@ CreateAllHouses()
     else
     {
         print("\n\n\t========================= LHOUSE ========================");
-        printf("\t Foram criadas %d casas.                                ", housesCreated);
+        printf("\t Foram criadas %d casa(s).                                ", housesCreated);
     }
     return 1;
 }
@@ -5054,7 +4830,7 @@ HouseVehicleDelivery(playerid)
     		houseCarSet[playerid] = true;
     		vehicleHouseCarDefined[house] = CreateVehicle(houseVehicle[house][vehicleModel], vehicleRandomSpawnLS[rand][0], vehicleRandomSpawnLS[rand][1], vehicleRandomSpawnLS[rand][2], vehicleRandomSpawnLS[rand][3], 0, 0, 5*60);
     		PutPlayerInVehicle(playerid, vehicleHouseCarDefined[house], 0);
-    		SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Estacione seu carro aonde quer que ele de spawn e digite {46FE00}/estacionar");
+    		SendClientMessage(playerid, COLOR_INFO, "* Estacione seu carro aonde quer que ele de spawn e digite {46FE00}/estacionar");
 
     		return 1;
     	#else
@@ -5063,7 +4839,7 @@ HouseVehicleDelivery(playerid)
 
     		houseCarSet[playerid] = true;
     		vehicleHouseCarDefined[house] = CreateVehicle(houseVehicle[house][vehicleModel], vehicleRandomSpawnLS[rand][0], vehicleRandomSpawnLS[rand][1], vehicleRandomSpawnLS[rand][2], vehicleRandomSpawnLS[rand][3], 0, 0, 5*60);
-    		SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Vá buscar seu carro na concessionária grotti.");
+    		SendClientMessage(playerid, COLOR_INFO, "* Vá buscar seu carro na concessionária grotti.");
 
     		return 1;
     	#endif
@@ -5075,7 +4851,7 @@ HouseVehicleDelivery(playerid)
     		houseCarSet[playerid] = true;
     		vehicleHouseCarDefined[house] = CreateVehicle(houseVehicle[house][vehicleModel], vehicleRandomSpawnSF[rand][0], vehicleRandomSpawnSF[rand][1], vehicleRandomSpawnSF[rand][2], vehicleRandomSpawnSF[rand][3], 0, 0, 5*60);
     		PutPlayerInVehicle(playerid, vehicleHouseCarDefined[house], 0);
-    		SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Estacione seu carro aonde quer que ele de spawn e digite {46FE00}/estacionar");
+    		SendClientMessage(playerid, COLOR_INFO, "* Estacione seu carro aonde quer que ele de spawn e digite {46FE00}/estacionar");
 
     		return 1;
     	#else
@@ -5083,7 +4859,7 @@ HouseVehicleDelivery(playerid)
                 rand = random(sizeof vehicleRandomSpawnSF);
     		houseCarSet[playerid] = true;
     		vehicleHouseCarDefined[house] = CreateVehicle(houseVehicle[house][vehicleModel], vehicleRandomSpawnSF[rand][0], vehicleRandomSpawnSF[rand][1], vehicleRandomSpawnSF[rand][2], vehicleRandomSpawnSF[rand][3], 0, 0, 5*60);
-    		SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Vá buscar seu carro na concessionária Otto's Auto.");
+    		SendClientMessage(playerid, COLOR_INFO, "* Vá buscar seu carro na concessionária Otto's Auto.");
 
     		return 1;
     	#endif
@@ -5095,7 +4871,7 @@ HouseVehicleDelivery(playerid)
     		houseCarSet[playerid] = true;
     		vehicleHouseCarDefined[house] = CreateVehicle(houseVehicle[house][vehicleModel], vehicleRandomSpawnLV[rand][0], vehicleRandomSpawnLV[rand][1], vehicleRandomSpawnLV[rand][2], vehicleRandomSpawnLV[rand][3], 0, 0, 5*60);
     		PutPlayerInVehicle(playerid, vehicleHouseCarDefined[house], 0);
-    		SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Estacione seu carro aonde quer que ele de spawn e digite {46FE00}/estacionar");
+    		SendClientMessage(playerid, COLOR_INFO, "* Estacione seu carro aonde quer que ele de spawn e digite {46FE00}/estacionar");
 
     		return 1;
     	#else
@@ -5104,7 +4880,7 @@ HouseVehicleDelivery(playerid)
 
     		houseCarSet[playerid] = true;
     		vehicleHouseCarDefined[house] = CreateVehicle(houseVehicle[house][vehicleModel], vehicleRandomSpawnLV[rand][0], vehicleRandomSpawnLV[rand][1], vehicleRandomSpawnLV[rand][2], vehicleRandomSpawnLV[rand][3], 0, 0, 5*60);
-    		SendClientMessage(playerid, -1, "[{FFEC00}LHouse{FFFFFF}] Vá buscar seu carro na Auto Bahn.");
+    		SendClientMessage(playerid, COLOR_INFO, "* Vá buscar seu carro na Auto Bahn.");
 
     		return 1;
     	#endif
