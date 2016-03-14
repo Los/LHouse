@@ -1,5 +1,20 @@
-#################
-## Ignored
-#################
-*.json
-*.inc
+# Compiled source #
+###################
+*.amx
+*.exe
+
+# Other files #
+###################
+*.atom-build.json
+*mysql_log.txt
+*server_log.txt
+*log.txt
+*.log
+*pawncc.exe
+*pawnc.pdb
+*pawnc.dll
+*pawncc.pdb
+*pawndisasm.pdb
+*samp03svr
+*samp-npc
+*announce

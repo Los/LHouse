@@ -4635,7 +4635,7 @@ CreateAllHousesVehicles()
     for(new houses = 1; houses < MAX_HOUSES; houses++)
     {
 	    format(vehiclePath, sizeof vehiclePath, "LHouse/Casas/Casa %d.txt", houses);
-		if(DOF2_GetInt(vehiclePath, "Modelo do Carro") != 0)
+		if(DOF2_GetInt(vehiclePath, "Modelo do Carro", "Veículo") != 0)
 		{
             houseVehicle[houses][vehicleModel] = DOF2_GetInt(vehiclePath, "Modelo do Carro", "Veículo");
     	    houseVehicle[houses][vehicleX] = DOF2_GetFloat(vehiclePath, "Coordenada do Veículo X", "Veículo");
