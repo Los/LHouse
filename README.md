@@ -1,4 +1,4 @@
-#LHouse - House System
+# LHouse - House System
 
 LHouse 2.0 é uma atualização do LHouse (filterscript para criação de casas) esta versão vem repleta de novidades, podendo além de casas, comprar carros e alugar casas. As funções são acessadas através de diálogos que podem ser visto apertando F ou ENTER no ícone de uma casa, incluindo comprar, vender e alugar, você também consegue criar facilmente casas dentro do jogo.
 
@@ -10,7 +10,7 @@ LHouse 2.0 é uma atualização do LHouse (filterscript para criação de casas)
 * **/criarcasa** - Cria uma casa dentro do jogo.
 * **Y** Tranca/destranca o veículo da casa.
 
-###Observações
+### Observações
 
 Para esse filterscript funcionar corretamente, você precisa criar as seguintes pastas na pasta *scriptfiles* do seu servidor:
 ```
@@ -22,7 +22,7 @@ Para esse filterscript funcionar corretamente, você precisa criar as seguintes 
 - LHouse/Logs
 ```
 
-###Agradecimentos
+### Agradecimentos
 * Sync
 * Suyanw
 * Hugo
